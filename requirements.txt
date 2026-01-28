@@ -1,14 +1,14 @@
 torch>=2.1.0
-ultralytics>=8.0.0
+ultralytics>=8.4.8
 opencv-python>=4.7.0
 transformers>=4.40.0
 datasets>=2.13.0
 librosa>=0.10.0
-arabic-reshaper>=5.0.0
+arabic-reshaper==3.0.0     
 python-bidi>=0.4.2
 speechrecognition>=3.8.1
 numpy>=1.24.0
 pandas>=2.0.0
-fastapi
+fastapi>=0.101.0
+uvicorn>=0.23.2
 
-uvicorn
