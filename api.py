@@ -4,25 +4,30 @@ import uuid
 import cv2
 import os
 from pathlib import Path
-import gdown  # لتحميل الملفات من Google Drive
+import gdown
+import zipfile
 
-# ================= Ensure SOS Model Folder Exists =================
-sos_model_dir = "sos_classifier_model"  # الفولدر كامل على المشروع
-
-if not os.path.exists(sos_model_dir):
-    print("SOS model folder not found. Downloading from Google Drive...")
-    # حطي هنا رابط Google Drive للفولدر كامل
-    url = "https://drive.google.com/drive/folders/1y8_fQ1zN5LXvNgDrFGzggjcA_i6WGnRX?usp=drive_link"
-    os.makedirs(sos_model_dir, exist_ok=True)
-    # تحميل الملف أو الملفات، ممكن كل ملف على حدة
-    gdown.download(url, f"{sos_model_dir}/placeholder_file.pt", quiet=False)
-    print("Download complete! Make sure all SOS files are present.")
-
-# ================= Imports that use the model =================
 from ai_model import detect_fire, detect_accident, classify_sos_text
 from alert_engine import fire_alert, accident_alert, sos_alert
 
 app = FastAPI(title="Emergency AI Service")
+
+# ================= Download & Extract SOS Model from Google Drive =================
+sos_model_dir = "sos_classifier_model"
+if not os.path.exists(sos_model_dir):
+    os.makedirs(sos_model_dir, exist_ok=True)
+    model_zip_id = os.environ.get("SOS_MODEL_ZIP_ID")  # Environment Variable on Render
+    if model_zip_id:
+        url = f"https://drive.google.com/file/d/118CPshOP-2Mlm2ivyG4UfdbzI8Se74tn/view?usp=drive_link={model_zip_id}"
+        output_path = "sos_classifier_model.zip"
+        gdown.download(url, output_path, quiet=False)
+
+        # فك الضغط على السيرفر
+        with zipfile.ZipFile(output_path, 'r') as zip_ref:
+            zip_ref.extractall(sos_model_dir)
+        os.remove(output_path)
+    else:
+        raise RuntimeError("SOS_MODEL_ZIP_ID Environment Variable not set!")
 
 # ================= Helper Function =================
 def process_video(file_path: str, detect_function):
@@ -101,4 +106,3 @@ async def sos_detection(text: str = Form(...)):
         "confidence": confidence,
         "alert": alert
     }
-
